@@ -1,4 +1,6 @@
 
+
+
 startMyProject()
 
 ##  Norway (Grunkretser) ----
@@ -8,9 +10,6 @@ grunnkretser18_path <-
 ##  literally a line file
 
 x <- st_read(grunnkretser18_path)
-
-
-
 ##  Okay the above doesn't work but how about Sweden -----
 
 ## We have downloaded all the stats files
