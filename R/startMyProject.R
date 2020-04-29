@@ -11,6 +11,13 @@ startMyProject <-
   function(
   ){
 
+  ## Calls up libraries
+  pkgs <-
+    c('tidyverse',
+      'sf')
+
+  sapply(pkgs, require, character.only = T)
+
   ##  Assign file paths out of this function to global variables using <<-
   dataBase_path <<-
     'C:/Users/mi1mz/Google Drive/Google Drive/NordF project/Data'
