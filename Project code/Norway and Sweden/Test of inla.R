@@ -32,5 +32,5 @@ class(frontier_model) # correct
 
 summary(frontier_model) ## this works because we are calling up summary.frontier_model
 
-frontier_as_sf(frontier_model)
-
+test <- frontier_as_sf(frontier_model)
+class(test)

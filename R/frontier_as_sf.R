@@ -13,7 +13,7 @@
 
 
 frontier_as_sf <-
-  function(frontier_model){
+  function(frontier_model, non_frontiers = F){
 
     ##  Check class
     data.class <- class(frontier_model)
@@ -24,16 +24,22 @@ frontier_as_sf <-
 
     ##  An edge list of bordering polygons with an indicator frontier if that border
     ##  is a frontier or not
-    w.index0 <-
+    egdelist_frontier <-
       which(frontier_model$W.frontiers == 0, arr.ind = T) %>% # finds non-NA values (which row and col) and arr.ind returns it as a matrix
       data.frame(frontier = T) # takes the table and turns it into data.frame and adds a row called frontier
 
-    w.index1 <-
+    egdelist_nonfrontier <-
       which(frontier_model$W.frontiers == 1, arr.ind = T) %>%
       data.frame(frontier = F) # finds non-NA values (which row and col) and arr.ind returns it as a matrix
 
-    w.index <- w.index0 %>% rbind(w.index1) # I want all the indicies for social frontiers and non-frontiers in
-
+    if(non_frontiers == T){
+      edgelist_borders <-
+        egdelist_frontier %>%
+        rbind(egdelist_nonfrontier) # I want all the indicies for social frontiers and non-frontiers in
+    }else{
+      edgelist_borders <-
+        egdelist_frontier
+    }
 
     ##  Filter out everything from the data except id and phi -- to minimise memory
     data.for.borders <-
@@ -46,13 +52,13 @@ frontier_as_sf <-
 
     x <- proc.time()
 
-    for (i in 1:nrow(w.index)) {
+    for (i in 1:nrow(edgelist_borders)) {
       #i <- 1 # for testing
-      zone1 <- w.index$col[i]
-      zone2 <- w.index$row[i]
+      zone1 <- edgelist_borders$col[i]
+      zone2 <- edgelist_borders$row[i]
 
       borders.sf[[i]] <- data.for.borders[zone1,] %>% st_intersection(data.for.borders[zone2,]) # now we are intersecting polys to get borders
-      #borders.sf$frontier[i] <- w.index$frontier[i]
+      #borders.sf$frontier[i] <- edgelist_borders$frontier[i]
 
       if(i %% 10 == 0){
         print(i)
@@ -66,7 +72,7 @@ frontier_as_sf <-
 
     ##  Add the frontier label
     borders.sf$frontier <-
-      w.index$frontier
+      edgelist_borders$frontier
 
     ##  add a class frontier_sf to the data
     class(borders.sf) <- c(class(borders.sf), 'frontier_sf')
