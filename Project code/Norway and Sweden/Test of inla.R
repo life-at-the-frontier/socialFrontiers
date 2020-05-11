@@ -2,6 +2,7 @@
 ##  We had previously made function called inla_frontier which made the
 ##  binomial ina routine more usable
 ##  delete global environment and do a clean and rebuild for this package
+devtools::load_all()
 
 startMyProject()
 library(INLA) ## for some reason I still need to call this EVEN though we have @import INLA in the function call
@@ -31,7 +32,6 @@ model <-
 
 class(model) # correct
 
-##  Based on my example code which used inla_frontier to preclean for binomial_localisedINLA
-# source('Source/summary_frontier_model.R')
+summary(model) ## this works because we are calling up summary.frontier_model
 
 
