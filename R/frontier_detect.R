@@ -80,7 +80,10 @@ frontier_detect <-
       1:nrow(mod.inla$data)
 
     class(mod.inla) <-
-      'frontier_model' #changes it's class allowing for custom routines
+      c(
+      'frontier_model', #changes it's class allowing for custom routines
+      class(mod.inla)
+      )
 
     return(mod.inla)
   }
