@@ -73,6 +73,12 @@ frontier_detect <-
     mod.inla$W.frontiers[lower.tri(mod.inla$W.frontiers, diag = T)] <-
       NA ## gets rid of the upper part of the sym. matrix
 
+    ##  Save the original data as well for mapping functions into sf
+    mod.inla$data <-
+      data2 %>% st_as_sf
+    mod.inla$data$id <-
+      1:nrow(mod.inla$data)
+
     class(mod.inla) <-
       'frontier_model' #changes it's class allowing for custom routines
 
