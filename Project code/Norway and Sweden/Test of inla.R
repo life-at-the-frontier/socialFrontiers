@@ -12,9 +12,9 @@ library(socialFrontiers)
 data(london)# the london data should be in the name space
 
 ##  Filter it to barnet -- london is too big
-# barnet <-
-#   london %>%
-#   filter(substr(LSOAname, 1, 6) %in% 'Barnet')
+barnet <-
+  london %>%
+  filter(substr(LSOAname, 1, 6) %in% 'Barnet')
 
 ##  For binomial_inla we need to specify y (counts) and trials as well as contingency
 ##  matrix W
@@ -26,8 +26,8 @@ n.trials <- 'totalPop' #total population (per zone?)
 set.seed(123)
 frontier_model <-
   frontier_detect(
-#    data = barnet,
-    data = london,
+    data = barnet,
+#    data = london,
     y = y, n.trials = n.trials)
 
 
@@ -37,3 +37,10 @@ summary(frontier_model) ## this works because we are calling up summary.frontier
 
 test <- frontier_as_sf(frontier_model)
 class(test)
+
+library(tmap)
+tm_shape(barnet) +
+  tm_fill(col='red') +
+  qtm(test) # works
+
+?frontier_as_sf()

@@ -1,6 +1,10 @@
 #'@title frontier_as_sf
+#'
 #' This is the function that converts a frontier_model object and extracts the
 #' borders as an sf object
+#' This is strictly for 1) graphing purposes or 2) for spatial operations
+#' Recommended to use edgelists for statistical analysis (wip)
+#'
 #'  Routine basically requires us to:
 #'  1) Make an edge list of all bordering polygons with an indicator frontier
 #'  if they are a frontier (and include phi from the binomial inla)
@@ -13,8 +17,10 @@
 
 
 frontier_as_sf <-
-  function(frontier_model, non_frontiers = F){
-
+  function(frontier_model,
+           convert2Line = T,
+           non_frontiers = F
+           ) {
     ##  Check class
     data.class <- class(frontier_model)
 
@@ -32,11 +38,11 @@ frontier_as_sf <-
       which(frontier_model$W.frontiers == 1, arr.ind = T) %>%
       data.frame(frontier = F) # finds non-NA values (which row and col) and arr.ind returns it as a matrix
 
-    if(non_frontiers == T){
+    if (non_frontiers == T) {
       edgelist_borders <-
         egdelist_frontier %>%
         rbind(egdelist_nonfrontier) # I want all the indicies for social frontiers and non-frontiers in
-    }else{
+    } else{
       edgelist_borders <-
         egdelist_frontier
     }
@@ -57,10 +63,11 @@ frontier_as_sf <-
       zone1 <- edgelist_borders$col[i]
       zone2 <- edgelist_borders$row[i]
 
-      borders.sf[[i]] <- data.for.borders[zone1,] %>% st_intersection(data.for.borders[zone2,]) # now we are intersecting polys to get borders
+      borders.sf[[i]] <-
+        data.for.borders[zone1, ] %>% st_intersection(data.for.borders[zone2, ]) # now we are intersecting polys to get borders
       #borders.sf$frontier[i] <- edgelist_borders$frontier[i]
 
-      if(i %% 10 == 0){
+      if (i %% 10 == 0) {
         print(i)
       }
 
@@ -74,8 +81,16 @@ frontier_as_sf <-
     borders.sf$frontier <-
       edgelist_borders$frontier
 
+
+    ##  Change to linefile if convert2Line is true
+    if(convert2Line){
+      borders.sf <-
+        st_collection_extract(borders.sf, type = 'LINE') # lots more objects now but still has the frontier feature in the right place
+    }
+
+
     ##  add a class frontier_sf to the data
-    class(borders.sf) <- c(class(borders.sf), 'frontier_sf')
+    class(borders.sf) <- c('frontier_sf', class(borders.sf))
 
     return(borders.sf)
   }

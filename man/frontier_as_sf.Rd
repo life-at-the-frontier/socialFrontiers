@@ -3,8 +3,12 @@
 \name{frontier_as_sf}
 \alias{frontier_as_sf}
 \title{frontier_as_sf
+
 This is the function that converts a frontier_model object and extracts the
 borders as an sf object
+This is strictly for 1) graphing purposes or 2) for spatial operations
+Recommended to use edgelists for statistical analysis (wip)
+
  Routine basically requires us to:
  1) Make an edge list of all bordering polygons with an indicator frontier
  if they are a frontier (and include phi from the binomial inla)
@@ -13,12 +17,16 @@ borders as an sf object
  list items grows
 Original code: frontier creation source line 80+ onwards}
 \usage{
-frontier_as_sf(frontier_model)
+frontier_as_sf(frontier_model, convert2Line = T, non_frontiers = F)
 }
 \description{
 frontier_as_sf
+
 This is the function that converts a frontier_model object and extracts the
 borders as an sf object
+This is strictly for 1) graphing purposes or 2) for spatial operations
+Recommended to use edgelists for statistical analysis (wip)
+
  Routine basically requires us to:
  1) Make an edge list of all bordering polygons with an indicator frontier
  if they are a frontier (and include phi from the binomial inla)
