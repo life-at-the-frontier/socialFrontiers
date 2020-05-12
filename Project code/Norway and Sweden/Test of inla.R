@@ -22,16 +22,25 @@ barnet <-
 y <- 'nonUK' # 'nonUK' # Number of foreign
 n.trials <- 'totalPop' #total population (per zone?)
 
-barnet_sp <- barnet %>% as('Spatial')
-
-##  Now we just run
-
-model <-
-  frontier_detect(data = barnet, y = y, n.trials = n.trials)
-
-
-class(model) # correct
-
-summary(model) ## this works because we are calling up summary.frontier_model
+##  now run
+set.seed(123)
+frontier_model <-
+  frontier_detect(
+    data = barnet,
+#    data = london,
+    y = y, n.trials = n.trials)
 
 
+class(frontier_model) # correct
+
+summary(frontier_model) ## this works because we are calling up summary.frontier_model
+
+test <- frontier_as_sf(frontier_model)
+class(test)
+
+library(tmap)
+tm_shape(barnet) +
+  tm_fill(col='red') +
+  qtm(test) # works
+
+?frontier_as_sf()
