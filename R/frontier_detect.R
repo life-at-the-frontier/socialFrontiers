@@ -1,8 +1,39 @@
-#' This is a wrapper for our frontier detection functions
-#' goal: standardise input and outputs regardless of technique?
+#' @title Method for detecting frontiers
+#'
+#' @description
+#' 'frontier_detect' returns a list object containing a adjacency matrix with
+#' 0 if the border between 2 areal units is a frontiers and 1 if not. NA if
+#' two units are not bordering.
+#' Currently only implements the algorithm for frontier detection from Dean et al
+#'
+#' @param y A string indicating column in data denoting the value to find
+#' discontinuities in
+#' @param data A sp or sf file of areal units from which we find frontiers
+#' @param n.trials A string indicating the column in data which indicates the
+#' numer of trials for binomial routine where all element of n.trials > y
+#' @param W.nb A neighbourhood matrix indicating which elements of data are
+#' adjacent to each other. Default is set to NULL and extracted within the function
+#' unless overwritten
+#' @param ... Other option to pass
+#'
+#' @return
+#' Return a list object of class frontier_model and also INLA model.
+#' @return
+#' W.frontiers An adjancency matrix where 1 is a border between units, 0 indicates
+#' a frontiers and NA are non-bordering areal units
+#' @return
+#' data returns the data in the original call as a sf object with an id column
+#'
+#' @details
+#' This is a wrapper other frontier detection functions. Return a list object of
+#' class frontier_model.
+#' A summary of the results can be called using summary(frontier_model). To
+#' extract the frontiers as sf line objects use frontier_as_sf(frontier_model).
+#'
+#' Goal: standardise input and outputs regardless of technique?
 #' TODO: Check out how packages like matchit and synthpop deal with calling
 #' methods from other packages
-#'  Note: orginally called inla_frontier in the project
+#' Orginally called inla_frontier in the project
 #'  Returns list object of class: frontier_model
 ##
 ##' @import INLA
