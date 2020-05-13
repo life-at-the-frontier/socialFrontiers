@@ -10,7 +10,7 @@
 #'by the st_intersects function used by the routine (see details). This includes points.
 #'@param non_frontiers Boolean value indicating if non-frontier borders are also
 #'returned. Default FALSE to speed up processing (see details).
-#'
+#'@param silent Boolean. To print progress or not. Default FALSE
 #'
 #'@details
 #'This is strictly for 1) graphing purposes or 2) for spatial operations
@@ -31,7 +31,8 @@
 frontier_as_sf <-
   function(frontier_model,
            convert2Line = T,
-           non_frontiers = F
+           non_frontiers = F,
+           silent = F
            ) {
     ##  Check class
     data.class <- class(frontier_model)
@@ -79,7 +80,7 @@ frontier_as_sf <-
         data.for.borders[zone1, ] %>% st_intersection(data.for.borders[zone2, ]) # now we are intersecting polys to get borders
       #borders.sf$frontier[i] <- edgelist_borders$frontier[i]
 
-      if (i %% 10 == 0) {
+      if (!silent & (i %% 10 == 0)) {
         print(i)
       }
 

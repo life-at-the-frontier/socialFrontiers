@@ -4,7 +4,7 @@
 \alias{frontier_as_sf}
 \title{Convert frontier_model object into an sf object}
 \usage{
-frontier_as_sf(frontier_model, convert2Line = T, non_frontiers = F)
+frontier_as_sf(frontier_model, convert2Line = T, non_frontiers = F, silent = F)
 }
 \arguments{
 \item{frontier_model}{A object of calls frontier_model created by frontier_detect}
@@ -15,6 +15,8 @@ by the st_intersects function used by the routine (see details). This includes p
 
 \item{non_frontiers}{Boolean value indicating if non-frontier borders are also
 returned. Default FALSE to speed up processing (see details).}
+
+\item{silent}{Boolean. To print progress or not. Default FALSE}
 }
 \description{
 Converts a frontier_model created by frontier_detect into an sf line object.
