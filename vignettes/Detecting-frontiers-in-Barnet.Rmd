@@ -62,7 +62,7 @@ for the statistical model in using socialFrontiers:::binomial_localisedINLA.
 set.seed(123)
 frontier_model <-
   frontier_detect(
-    data = london,
+    data = barnet,
     y = y, n.trials = n.trials)
 
 class(frontier_model) # Type of output object
@@ -86,7 +86,7 @@ throws up ignorable warnings that come from using sf::st_intersects.
 
 ```{r sf methods, message=FALSE}
 suppressWarnings(borders_sf <-
-                   frontier_as_sf(frontier_model))
+                   frontier_as_sf(frontier_model, silent = T))
 class(borders_sf)
 
 ```
@@ -95,7 +95,7 @@ Example graph using tmap.
 
 ```{r sf graphing}
 library(tmap)
-tm_shape(london) +
+tm_shape(barnet) +
   tm_fill(col='red') +
   qtm(borders_sf) # works
 ```
