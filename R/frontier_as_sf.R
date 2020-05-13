@@ -27,7 +27,7 @@
 #'@import tidyverse
 #'@import sf
 
-
+#'@export
 frontier_as_sf <-
   function(frontier_model,
            convert2Line = T,

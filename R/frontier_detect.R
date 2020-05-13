@@ -39,7 +39,7 @@
 ##' @import INLA
 ##' @import spdep
 
-
+#' @export
 frontier_detect <-
   function(y, data, n.trials, W.nb = NULL, ...) {
 

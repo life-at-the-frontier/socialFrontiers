@@ -7,7 +7,7 @@
 #'
 #' @param object A frontier_model object created by frontier_detect()
 #'
-
+#' @export
 summary.frontier_model <- function(object, ...){
 
 
