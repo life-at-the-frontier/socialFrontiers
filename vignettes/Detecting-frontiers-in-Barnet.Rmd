@@ -1,0 +1,19 @@
+---
+title: "Detecting-frontiers-in-Barnet"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Detecting-frontiers-in-Barnet}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(socialFrontiers)
+```
