@@ -2,14 +2,15 @@
 % Please edit documentation in R/summary_frontier_model.R
 \name{summary.frontier_model}
 \alias{summary.frontier_model}
-\title{Common inspections of the object include the number of frontiers vs non-frontiers
-this uses a class method for summary -- summary.<class> happens if we do 
-summary(<this_class>)}
+\title{Summary method for frontier_model objects}
 \usage{
 \method{summary}{frontier_model}(object, ...)
 }
+\arguments{
+\item{object}{A frontier_model object created by frontier_detect()}
+}
 \description{
-Common inspections of the object include the number of frontiers vs non-frontiers
-this uses a class method for summary -- summary.<class> happens if we do 
-summary(<this_class>)
+Common inspections of the object the number of frontiers vs non-frontiers
+this uses a class method for summary.
+Prints total number of borders and the number of frontiers vs non-frontiers
 }

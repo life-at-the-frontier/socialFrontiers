@@ -1,0 +1,101 @@
+---
+title: "Detecting-frontiers-in-Barnet"
+author: "Meng-Le-Zhang"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Detecting-frontiers-in-Barnet}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(socialFrontiers)
+library(tidyverse)
+```
+
+
+#  Load the data from the package namespace using data()
+
+The package contains an example dataset of London split into spatial polygons. 
+Each polygon represents a census unit called lower super output area. The london
+data contains the number of UK-born and non-UK-born residents in a LSOA. For the 
+purposes of this vignette, I select all areas in the borough of Barnet since
+London is so large. 
+
+The data is in the form of a sf object but the frontier detection function also
+accepts sp objects.
+
+```{r load data}
+data(london)# the london data should be in the name space
+
+##  Filter to the borough of Barnet
+barnet <-
+  london %>%
+  filter(substr(LSOAname, 1, 6) %in% 'Barnet')
+
+```
+
+#  Using frontier_detect to find frontiers
+
+Currently the only method for finding frontiers is the localised binomial model
+used in Dean et al. The model needs total counts of an event occuring
+(e.g. number of non-UK-born residents) and the total number of trials (e.g. 
+total number of residents). The name of the variables denoting the column containing
+these counts must be entered as a string.
+
+```{r set parameters}
+y <- 'nonUK' # 'nonUK' # Number of foreign
+n.trials <- 'totalPop' #total population (per zone?)
+```
+
+Now we run the frontier_detect routine. You can see the underlying code used 
+for the statistical model in using socialFrontiers:::binomial_localisedINLA.
+
+```{r run frontier_detect()}
+set.seed(123)
+frontier_model <-
+  frontier_detect(
+    data = barnet,
+    y = y, n.trials = n.trials)
+
+class(frontier_model) # Type of output object
+```
+
+The output saves as a 'frontier_model' object which can be used with other
+methods such as summary.
+
+## Methods for use with the frontier_model object
+
+### Summary
+```{r summary method}
+summary(frontier_model) ## This calls up summary.frontier_model
+```
+
+### graphing and gis methods
+
+We can extract the frontier (as well as non-frontier) borders as a sf object for
+further graphing or gis methods using frontier_as_sf. Note that this function
+throws up ignorable warnings that come from using sf::st_intersects.
+
+```{r sf methods, message=FALSE}
+suppressWarnings(borders_sf <-
+                   frontier_as_sf(frontier_model))
+class(borders_sf)
+
+```
+
+Example graph using tmap.
+
+```{r sf graphing}
+library(tmap)
+tm_shape(barnet) +
+  tm_fill(col='red') +
+  qtm(borders_sf) # works
+```

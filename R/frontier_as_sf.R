@@ -1,21 +1,33 @@
-#'@title frontier_as_sf
+#'@title Convert frontier_model object into an sf object
 #'
-#' This is the function that converts a frontier_model object and extracts the
-#' borders as an sf object
-#' This is strictly for 1) graphing purposes or 2) for spatial operations
-#' Recommended to use edgelists for statistical analysis (wip)
+#'@description
+#'Converts a frontier_model created by frontier_detect into an sf line object.
+#'Default geometry are lines.
 #'
-#'  Routine basically requires us to:
+#'@param frontier_model A object of calls frontier_model created by frontier_detect
+#'@param convert2Line Boolean value indicating if we want to return borders
+#'as line geometries. If FALSE then it will return all types of geometries created
+#'by the st_intersects function used by the routine (see details). This includes points.
+#'@param non_frontiers Boolean value indicating if non-frontier borders are also
+#'returned. Default FALSE to speed up processing (see details).
+#'
+#'
+#'@details
+#'This is strictly for 1) graphing purposes or 2) for spatial operations
+#'Recommended to use edgelists for statistical analysis (wip)
+#'
+#'  Implementation basically requires us to:
 #'  1) Make an edge list of all bordering polygons with an indicator frontier
 #'  if they are a frontier (and include phi from the binomial inla)
 #'  2) From that edge list use st_intersect to extract ALL borders
 #'  Issue current method uses do.call(rbind) which is inefficient as number of
 #'  list items grows
 #' Original code: frontier creation source line 80+ onwards
+#'
 #'@import tidyverse
 #'@import sf
 
-
+#'@export
 frontier_as_sf <-
   function(frontier_model,
            convert2Line = T,
