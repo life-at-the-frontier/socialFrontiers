@@ -19,3 +19,9 @@ binomial_localisedINLA(
 \description{
 Run a Binomial Localised spatial autoregressive model using INLA
 }
+\details{
+Need filling in by original authors
+}
+\author{
+Guanpeng Dong and Nema Dean
+}
