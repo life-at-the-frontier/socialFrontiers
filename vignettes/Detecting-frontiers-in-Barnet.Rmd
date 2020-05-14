@@ -1,6 +1,6 @@
 ---
-title: "Detecting-frontiers-in-Barnet"
-author: "Meng-Le-Zhang"
+title: "Detecting-frontiers-in-Barnet [Placeholder vignette]"
+author: "Meng Le Zhang"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Detecting-frontiers-in-Barnet}
@@ -33,7 +33,7 @@ The data is in the form of a sf object but the frontier detection function also
 accepts sp objects.
 
 ```{r load data}
-data(london)# the london data should be in the name space
+data(london)
 
 ##  Filter to the borough of Barnet
 barnet <-
@@ -59,13 +59,12 @@ Now we run the frontier_detect routine. You can see the underlying code used
 for the statistical model in using socialFrontiers:::binomial_localisedINLA.
 
 ```{r run frontier_detect()}
-set.seed(123)
 frontier_model <-
   frontier_detect(
     data = barnet,
     y = y, n.trials = n.trials)
 
-class(frontier_model) # Type of output object
+class(frontier_model) # Outputs a frontier_model object
 ```
 
 The output saves as a 'frontier_model' object which can be used with other
@@ -87,15 +86,21 @@ throws up ignorable warnings that come from using sf::st_intersects.
 ```{r sf methods, message=FALSE}
 suppressWarnings(borders_sf <-
                    frontier_as_sf(frontier_model, silent = T))
-class(borders_sf)
 
+class(borders_sf) 
 ```
 
-Example graph using tmap.
+Example graph using tmap showing all frontiers.
 
 ```{r sf graphing}
 library(tmap)
+
+##  Create a variable for prop-non-UK
+barnet <-
+  barnet %>%
+  mutate(propNonUK = nonUK/totalPop)
+
 tm_shape(barnet) +
-  tm_fill(col='red') +
+  tm_fill(col= 'propNonUK') +
   qtm(borders_sf) # works
 ```
