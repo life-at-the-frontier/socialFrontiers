@@ -1,13 +1,24 @@
 Package: socialFrontiers
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
-Authors@R: 
-    person(given = "First",
-           family = "Last",
+Authors@R: c(
+    person(given = "Meng Le",
+           family = "Zhang",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "meng_le.zhang@sheffield.ac.uk",
+           comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Nema",
+           family = "Dean",
+           role = c("aut"),
+           email = "Nema.Dean@glasgow.ac.uk",
+           comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Gavin (Guanpeng)",
+           family = "Dong",
+           role = c("aut"),
+           email = "Nema.Dean@glasgow.ac.uk",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+           )
+Description: This package implements algorithms for detecting social frontiers from spatial polygon data.
 License: What license it uses
 Encoding: UTF-8
 LazyData: true
@@ -16,3 +27,8 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Imports: 
+    sf,
+    INLA,
+    spdep,
+    dplyr
