@@ -20,7 +20,9 @@ See: http://www.r-inla.org/download
 
 ### Installing from github:
 
+Below option also builds vignettes.
+
 ```r
 require(devtools)
-install_github("menglezhang/socialfrontiers")
+install_github("menglezhang/socialfrontiers", build_opts = c("--no-resave-data", "--no-manual"), build_vignettes = TRUE)
 ```
