@@ -7,19 +7,28 @@
 #'
 #' @param object A frontier_model object created by frontier_detect()
 #'
-#' @export
+
 summary.frontier_model <- function(object, ...){
 
 
   ## Display the numbers of frontiers
-  borders.tab <- tabulate(object$W.frontiers + 1) # so table will convert integer to
+  borders_tab <- tabulate(object$W.frontiers + 1) # so table will convert integer to
   #factor first so the quicker way is to use tabulate which will only display
-  ##  coutners of positive intergers
+  ##  counts of positive intergers
 
-  print('Total N. of borders')
-  print(sum(borders.tab))
-  print('N. of borders: frontier vs non-frontier')
-  print(borders.tab)
+  n_borders <-
+    sum(borders_tab)
 
+  out <-
+    list(
+      n_borders = n_borders,
+      borders_tab = borders_tab
+    )
+
+  class(out) <- c("summary.frontier_model", out)
+
+  return(out)
 
 }
+
+
