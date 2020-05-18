@@ -24,7 +24,7 @@
 #'  list items grows
 #' Original code: frontier creation source line 80+ onwards
 #'
-#'@import tidyverse
+#'@import dplyr
 #'@import sf
 
 #'@export
