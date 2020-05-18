@@ -1,7 +1,7 @@
 #' Print method for summary.frontier_model
 #'
 #' See summary.frontier_model
-
+#' @export
 print.summary.frontier_model <- function(object, ...){
   print(
     paste('Total N. of borders:',
