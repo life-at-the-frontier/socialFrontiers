@@ -11,6 +11,7 @@
 #'@param non_frontiers Boolean value indicating if non-frontier borders are also
 #'returned. Default FALSE to speed up processing (see details).
 #'@param silent Boolean. To print progress or not. Default FALSE
+#'@param character. Options for routines to extract borders
 #'
 #'@details
 #'This is strictly for 1) graphing purposes or 2) for spatial operations
@@ -32,6 +33,7 @@ frontier_as_sf <-
   function(frontier_model,
            convert2Line = T,
            non_frontiers = F,
+           method = 'forLoop', #method for controlling how we get the
            silent = F
            ) {
     ##  Check class
@@ -40,6 +42,16 @@ frontier_as_sf <-
     if (!('frontier_model' %in% data.class))
       stop ('Not a frontier_model object; please run frontier_detect()')
 
+    ## Check method for extracting borders is valid
+    validMethods <-
+      c('forLoop', 'preAllocate')
+    if(!(
+      method %in% validMethods
+    ))stop(
+      paste('Not a valid method for extracting borders. Choose one of:',
+            validMethods %>% paste(collapse = ', ')
+    )
+    )
 
     ##  An edge list of bordering polygons with an indicator frontier if that border
     ##  is a frontier or not
