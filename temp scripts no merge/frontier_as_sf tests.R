@@ -22,9 +22,9 @@ frontier_model <-
 ##  Test of function speed -----
 
 borders_sf <-
-#  frontier_as_sf(frontier_model, silent = T) # 2.74 seconds
+#  frontier_as_sf(frontier_model, silent = T) # 1.97 / 0.9 s
 #  frontier_as_sf(frontier_model, silent = T, method = 'wrongOption') # Checking error messgae
-  frontier_as_sf(frontier_model, silent = T, method = 'preAllocate')
+#  frontier_as_sf(frontier_model, silent = T, method = 'preAllocate') # 1.99 / 1.26 seconds
 
 
 

@@ -36,6 +36,8 @@ frontier_as_sf <-
            method = 'forLoop', #method for controlling how we get the
            silent = F
            ) {
+
+
     ##  Check class
     data.class <- class(frontier_model)
 
@@ -78,19 +80,20 @@ frontier_as_sf <-
       mutate(phi = frontier_model$phi[['Median']]) %>%
       select(id, phi)
 
-    ##  Now to run the st_intersection in a forloop
-    borders.sf <- list(NULL)
 
+# Methods and timing
     x <- proc.time()
+
+    borders_list <- list(NULL)
+
 
     for (i in 1:nrow(edgelist_borders)) {
       #i <- 1 # for testing
       zone1 <- edgelist_borders$col[i]
       zone2 <- edgelist_borders$row[i]
 
-      borders.sf[[i]] <-
+      borders_list[[i]] <-
         data.for.borders[zone1, ] %>% st_intersection(data.for.borders[zone2, ]) # now we are intersecting polys to get borders
-      #borders.sf$frontier[i] <- edgelist_borders$frontier[i]
 
       if (!silent & (i %% 10 == 0)) {
         print(i)
@@ -98,24 +101,56 @@ frontier_as_sf <-
 
     }
 
-    borders.sf <-
-      do.call(rbind, borders.sf)
     print(proc.time() - x)
 
+
+    y <- proc.time()
+
+    print(
+      method %>% paste('Using', . , collapse = ' ')
+    )
+
+
+    ##  method = forLoop
+    if(method == 'forLoop'){
+      borders_sf <-
+        do.call(rbind, borders_list)
+    }
+
+    ## method = preAllocate
+    if(method == 'preAllocate'){
+      n <- length(borders_list)
+
+      ## Create the data using the first and last item of the borders list
+      borders_sf <-
+        borders_list[[1]]
+      borders_sf[n, ] <-
+        borders_list[[n]]
+
+      for (j in 1:n){
+        borders_sf[j, ] <-
+          borders_list[[j]]
+      }
+
+    }
+    print(proc.time() - y)
+
+
+
     ##  Add the frontier label
-    borders.sf$frontier <-
+    borders_sf$frontier <-
       edgelist_borders$frontier
 
 
     ##  Change to linefile if convert2Line is true
     if(convert2Line){
-      borders.sf <-
-        st_collection_extract(borders.sf, type = 'LINE') # lots more objects now but still has the frontier feature in the right place
+      borders_sf <-
+        st_collection_extract(borders_sf, type = 'LINE') # lots more objects now but still has the frontier feature in the right place
     }
 
 
     ##  add a class frontier_sf to the data
-    class(borders.sf) <- c('frontier_sf', class(borders.sf))
+    class(borders_sf) <- c('frontier_sf', class(borders_sf))
 
-    return(borders.sf)
+    return(borders_sf)
   }
