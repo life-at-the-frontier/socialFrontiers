@@ -4,7 +4,13 @@
 \alias{frontier_as_sf}
 \title{Convert frontier_model object into an sf object}
 \usage{
-frontier_as_sf(frontier_model, convert2Line = T, non_frontiers = F, silent = F)
+frontier_as_sf(
+  frontier_model,
+  convert2Line = T,
+  non_frontiers = F,
+  method = "rbindlist",
+  silent = F
+)
 }
 \arguments{
 \item{frontier_model}{A object of calls frontier_model created by frontier_detect}
@@ -15,6 +21,9 @@ by the st_intersects function used by the routine (see details). This includes p
 
 \item{non_frontiers}{Boolean value indicating if non-frontier borders are also
 returned. Default FALSE to speed up processing (see details).}
+
+\item{method}{character. Options for routines to extract borders. Note issues
+with method = 'rbindlist'}
 
 \item{silent}{Boolean. To print progress or not. Default FALSE}
 }
@@ -30,7 +39,8 @@ Recommended to use edgelists for statistical analysis (wip)
  1) Make an edge list of all bordering polygons with an indicator frontier
  if they are a frontier (and include phi from the binomial inla)
  2) From that edge list use st_intersect to extract ALL borders
- Issue current method uses do.call(rbind) which is inefficient as number of
- list items grows
-Original code: frontier creation source line 80+ onwards
+For step 2) we need a method to combine all the st_intersects from a list. By
+default rbindlist from data.table is fastest. However the bounding box may
+be incorrect. This is know to affect tmap's default map plotting behaviour but
+not a substantial issue. forLoop calls do.call(rbind) which is far slower
 }

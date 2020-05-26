@@ -11,7 +11,8 @@
 #'@param non_frontiers Boolean value indicating if non-frontier borders are also
 #'returned. Default FALSE to speed up processing (see details).
 #'@param silent Boolean. To print progress or not. Default FALSE
-#'@param character. Options for routines to extract borders
+#'@param method character. Options for routines to extract borders. Note issues
+#' with method = 'rbindlist'
 #'
 #'@details
 #'This is strictly for 1) graphing purposes or 2) for spatial operations
@@ -21,19 +22,21 @@
 #'  1) Make an edge list of all bordering polygons with an indicator frontier
 #'  if they are a frontier (and include phi from the binomial inla)
 #'  2) From that edge list use st_intersect to extract ALL borders
-#'  Issue current method uses do.call(rbind) which is inefficient as number of
-#'  list items grows
-#' Original code: frontier creation source line 80+ onwards
+#'For step 2) we need a method to combine all the st_intersects from a list. By
+#'default rbindlist from data.table is fastest. However the bounding box may
+#'be incorrect. This is know to affect tmap's default map plotting behaviour but
+#'not a substantial issue. forLoop calls do.call(rbind) which is far slower
 #'
 #'@import dplyr
 #'@import sf
+#'@importFrom data.table rbindlist
 
 #'@export
 frontier_as_sf <-
   function(frontier_model,
            convert2Line = T,
            non_frontiers = F,
-           method = 'forLoop', #method for controlling how we get the
+           method = 'rbindlist', #method for controlling how we get the
            silent = F
            ) {
 
