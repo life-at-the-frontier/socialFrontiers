@@ -46,7 +46,8 @@ frontier_as_sf <-
 
     ## Check method for extracting borders is valid
     validMethods <-
-      c('forLoop', 'preAllocate')
+      c('forLoop', 'preAllocate', 'rbindlist')
+
     if(!(
       method %in% validMethods
     ))stop(
@@ -93,8 +94,9 @@ frontier_as_sf <-
       zone2 <- edgelist_borders$row[i]
 
       borders_list[[i]] <-
-        data.for.borders[zone1, ] %>% st_intersection(data.for.borders[zone2, ]) # now we are intersecting polys to get borders
-
+        data.for.borders[zone1, ] %>%
+        sf::st_intersection(data.for.borders[zone2, ]) %>%
+        sf::st_cast('MULTILINESTRING')# now we are intersecting polys to get borders
       if (!silent & (i %% 10 == 0)) {
         print(i)
       }
@@ -133,13 +135,25 @@ frontier_as_sf <-
       }
 
     }
-    print(proc.time() - y)
 
+    ## method = rbindlist from data.table
+    if(method == 'rbindlist'){
+      borders_sf <-
+        data.table::rbindlist(borders_list)
+
+      ##  we need to coerce back to sf
+      borders_sf <-
+        borders_sf %>%
+        st_as_sf()
+    }
+
+    print(proc.time() - y)
 
 
     ##  Add the frontier label
     borders_sf$frontier <-
       edgelist_borders$frontier
+
 
 
     ##  Change to linefile if convert2Line is true

@@ -25,7 +25,10 @@ borders_sf <-
 #  frontier_as_sf(frontier_model, silent = T) # 1.97 / 0.9 s
 #  frontier_as_sf(frontier_model, silent = T, method = 'wrongOption') # Checking error messgae
 #  frontier_as_sf(frontier_model, silent = T, method = 'preAllocate') # 1.99 / 1.26 seconds
+  frontier_as_sf(frontier_model, silent = T, method = 'rbindlist') # 2 / 0.02 seconds
 
 
 
+#tmap::qtm(barnet) +
+  tmap::qtm(borders_sf, col = 'red')
 
