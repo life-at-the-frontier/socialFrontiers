@@ -36,8 +36,9 @@
 #' Orginally called inla_frontier in the project
 #'  Returns list object of class: frontier_model
 ##
-##' @importFrom spdep poly2nb nb2mat
-##' @import sf
+#' @importFrom spdep poly2nb
+#' @importFrom spdep nb2mat
+#' @import sf
 
 #' @export
 frontier_detect <-
