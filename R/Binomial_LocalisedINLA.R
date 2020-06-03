@@ -2,7 +2,7 @@
 #' @author Guanpeng Dong and Nema Dean
 #' @details
 #' Need filling in by original authors
-#' @import INLA
+#' @importFrom INLA inla
 
 binomial_localisedINLA <-
   function(formula,
