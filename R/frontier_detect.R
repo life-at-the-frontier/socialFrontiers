@@ -36,8 +36,9 @@
 #' Orginally called inla_frontier in the project
 #'  Returns list object of class: frontier_model
 ##
-##' @import INLA
-##' @import spdep
+#' @importFrom spdep poly2nb
+#' @importFrom spdep nb2mat
+#' @import sf
 
 #' @export
 frontier_detect <-
@@ -61,7 +62,7 @@ frontier_detect <-
 
     ##  Creating the contiguity matrix: if no W.nb is supplied make one
     if (is.null(W.nb)) {
-      W.nb <- spdep::poly2nb(data2,
+      W.nb <- poly2nb(data2,
                       queen = F,
                       #more than just a single point touching to be neighbours
                       row.names = 1:nrow(data2)) #Sadly we have to convert the sf object to spatial dataframe using as() here
@@ -73,7 +74,7 @@ frontier_detect <-
       warning(count.no.neighours %>% paste('zone(s) have no neighbours!'))
     }
 
-    W <- spdep::nb2mat(W.nb, style = "B") # B = binary
+    W <- nb2mat(W.nb, style = "B") # B = binary
 
 
     ##  INLA routine
