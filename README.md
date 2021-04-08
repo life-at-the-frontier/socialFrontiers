@@ -15,7 +15,7 @@ implementing the detection model and extracting its results.
 This package relies on dependencies found in CRAN except for the INLA package.
 
 The INLA package must be installed.
-See: http://www.r-inla.org/download
+See: https://www.r-inla.org/download-install
 
 
 ### Installing from github:
