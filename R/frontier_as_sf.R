@@ -10,6 +10,8 @@
 #'by the st_intersects function used by the routine (see details). This includes points.
 #'@param non_frontiers Boolean value indicating if non-frontier borders are also
 #'returned. Default FALSE to speed up processing (see details).
+#'@param edgelistOnly Boolean value indicating where or not to extract edgelist only
+#'without sf geometry. Default FALSE to return sf geometry.
 #'@param silent Boolean. To print progress or not. Default FALSE
 #'
 #'@details
@@ -32,6 +34,7 @@ frontier_as_sf <-
   function(frontier_model,
            convert2Line = T,
            non_frontiers = F,
+           edgelistOnly = F,
            silent = F
            ) {
     ##  Check class
@@ -66,6 +69,21 @@ frontier_as_sf <-
       mutate(phi = frontier_model$phi[['Median']]) %>%
       select(id, phi)
 
+
+    ## Edgelist only option to save time
+    if (edgelistOnly == T) {
+      out <-
+        data.frame(
+          id = data.for.borders$id[edgelist_borders$col],
+          id.1 = data.for.borders$id[edgelist_borders$row],
+          phi = data.for.borders$phi[edgelist_borders$col],
+          phi.1 = data.for.borders$phi[edgelist_borders$row]
+        )
+
+      return(out)
+    }
+
+
     ##  Now to run the st_intersection in a forloop
     borders.sf <- list(NULL)
 
@@ -86,6 +104,7 @@ frontier_as_sf <-
 
     }
 
+
     borders.sf <-
       do.call(rbind, borders.sf)
     print(proc.time() - x)
@@ -93,6 +112,7 @@ frontier_as_sf <-
     ##  Add the frontier label
     borders.sf$frontier <-
       edgelist_borders$frontier
+
 
 
     ##  Change to linefile if convert2Line is true
