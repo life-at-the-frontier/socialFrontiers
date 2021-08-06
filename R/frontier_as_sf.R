@@ -118,7 +118,17 @@ frontier_as_sf <-
     ##  Change to linefile if convert2Line is true
     if(convert2Line){
       borders.sf <-
-        st_collection_extract(borders.sf, type = 'LINE') # lots more objects now but still has the frontier feature in the right place
+        st_collection_extract(borders.sf, type = 'LINE')
+
+      ## Fix multiple entries caused by geom_collections -- eg. multiple intersections
+      borders.sf <-
+        borders.sf %>%
+        group_by(id, id.1, phi, phi.1) %>%
+        summarise(
+          hotfix = T
+        ) %>%
+        ungroup %>%
+        select(-hotfix)
     }
 
 
