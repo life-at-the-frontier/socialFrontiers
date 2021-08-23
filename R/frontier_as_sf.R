@@ -28,6 +28,7 @@
 #'
 #'@import dplyr
 #'@import sf
+#'@import purrr
 
 #'@export
 frontier_as_sf <-
@@ -69,50 +70,83 @@ frontier_as_sf <-
       mutate(phi = frontier_model$phi[['Median']]) %>%
       select(id, phi)
 
+    edgelist <-
+      data.frame(
+        id = data.for.borders$id[edgelist_borders$col],
+        id.1 = data.for.borders$id[edgelist_borders$row],
+        phi = data.for.borders$phi[edgelist_borders$col],
+        phi.1 = data.for.borders$phi[edgelist_borders$row]
+      )
+
+
+
 
     ## Edgelist only option to save time
     if (edgelistOnly == T) {
-      out <-
-        data.frame(
-          id = data.for.borders$id[edgelist_borders$col],
-          id.1 = data.for.borders$id[edgelist_borders$row],
-          phi = data.for.borders$phi[edgelist_borders$col],
-          phi.1 = data.for.borders$phi[edgelist_borders$row]
-        )
-
-      return(out)
+      return(edgelist)
     }
+
+
+
+    # hotfix: try to use map2 in purrr to vectorise the forloop ---------------
+    x <- proc.time()
+
+
+    ## Get geometry of whole vector
+    zones1 <- data.for.borders[edgelist_borders$col,] %>% st_geometry()
+    zones2 <- data.for.borders[edgelist_borders$row,] %>% st_geometry()
+
+    # use map2 to vectorise the st_intersection
+    borders_geomlist <- purrr::map2(zones1, zones2, st_intersection)
+
+    ## turn list into sfc
+    border_sfc <- st_sfc(borders_geomlist)
+
+    ##  add geom + crs to edlist
+    st_geometry(edgelist) <- border_sfc
+    st_crs(edgelist) <- st_crs(data.for.borders)
+
+    ## rename
+    borders.sf <- edgelist
+    ## end time
+    print(proc.time() - x)
+
+
+    # end hotfix --------------------------------------------------------------
 
 
     ##  Now to run the st_intersection in a forloop
-    borders.sf <- list(NULL)
-
-    x <- proc.time()
-
-    for (i in 1:nrow(edgelist_borders)) {
-      #i <- 1 # for testing
-      zone1 <- edgelist_borders$col[i]
-      zone2 <- edgelist_borders$row[i]
-
-      borders.sf[[i]] <-
-        data.for.borders[zone1, ] %>% st_intersection(data.for.borders[zone2, ]) # now we are intersecting polys to get borders
-      #borders.sf$frontier[i] <- edgelist_borders$frontier[i]
-
-      if (!silent & (i %% 10 == 0)) {
-        print(i)
-      }
-
-    }
-
-
-    borders.sf <-
-      do.call(rbind, borders.sf)
-    print(proc.time() - x)
+    # borders.sf <- list(NULL)
+    #
+    # x <- proc.time()
+    #
+    # for (i in 1:nrow(edgelist_borders)) {
+    #   #i <- 1 # for testing
+    #   zone1 <- edgelist_borders$col[i]
+    #   zone2 <- edgelist_borders$row[i]
+    #
+    #   borders.sf[[i]] <-
+    #     data.for.borders[zone1, ] %>% st_intersection(data.for.borders[zone2, ]) # now we are intersecting polys to get borders
+    #   #borders.sf$frontier[i] <- edgelist_borders$frontier[i]
+    #
+    #   if (!silent & (i %% 10 == 0)) {
+    #     print(i)
+    #   }
+    #
+    # }
+    #
+    #
+    # borders.sf <-
+    #   do.call(rbind, borders.sf)
+    # print(proc.time() - x)
 
     ##  Add the frontier label
     borders.sf$frontier <-
       edgelist_borders$frontier
 
+
+    borders.sf <-
+      st_collection_extract(borders.sf, type = 'LINE')
 
 
     ##  Change to linefile if convert2Line is true
