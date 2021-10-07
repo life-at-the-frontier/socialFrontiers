@@ -145,8 +145,6 @@ frontier_as_sf <-
       edgelist_borders$frontier
 
 
-    borders.sf <-
-      st_collection_extract(borders.sf, type = 'LINE')
 
 
     ##  Change to linefile if convert2Line is true
