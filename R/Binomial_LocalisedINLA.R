@@ -21,8 +21,7 @@ binomial_localisedINLA <-
   inla.version= strsplit(as.character(packageVersion("INLA")),"\\.")
   inla.version= sapply(inla.version,as.numeric)
   needscontrol= (inla.version[1]<22 && inla.version[2]<7)
-  ##############################################
-  #### Overall formula object
+
   ##############################################
   #### Format the arguments and check for errors
   ##############################################
