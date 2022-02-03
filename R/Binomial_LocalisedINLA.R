@@ -16,6 +16,14 @@ binomial_localisedINLA <-
            prior.precision.scale = 0.001)
   {
   ##############################################
+  #### Check for INLA version to be able adapt 
+  #### call in consequences 
+  inla.version= strsplit(as.character(packageVersion("INLA")),"\\.")
+  inla.version= sapply(inla.version,as.numeric)
+  needscontrol= (inla.version[1]<22 && inla.version[2]<7)
+  ##############################################
+  #### Overall formula object
+  ##############################################
   #### Format the arguments and check for errors
   ##############################################
   #### Overall formula object
@@ -60,7 +68,9 @@ binomial_localisedINLA <-
   ###############################################
   #### Run the model
   form <- Y ~ -1 + X +  f(region, model="iid", constr=TRUE, hyper=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale))))
-  model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+  model = NULL
+  if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+  else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
 
 
   #### Compute Morans I
@@ -127,10 +137,18 @@ binomial_localisedINLA <-
 
       #### Fit the model with the current W matrix
       form <- Y ~  -1 + X + f(region, model="generic0", Cmatrix = Q, constr=TRUE, hyper=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale))))
-      model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,
-#                     verbose = T,
-                     control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-
+      if(needscontrol)
+      {
+        model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,
+#                       verbose = T,
+                       control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      }
+      else
+      {
+        model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,
+#                       verbose = T,
+                       control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      }
 
       #### Compute Moran's I
       fitted <- model$summary.fitted.values[ ,4]
@@ -198,7 +216,8 @@ binomial_localisedINLA <-
 
       ## Run the final model
       form <- Y ~  -1 + X  +  f(region, model="generic0", Cmatrix = Q, constr=TRUE, hyper=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale))))
-      model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
 
 
       ## Save the results
@@ -234,7 +253,8 @@ binomial_localisedINLA <-
 
       ## Run the final model
       form <- Y ~  -1 + X  +  f(region, model="generic0", Cmatrix = Q, constr=TRUE, hyper=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale))))
-      model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
 
 
       ## Save the results
@@ -268,7 +288,9 @@ binomial_localisedINLA <-
 
       #### Fit the model with the current W matrix
       form <- Y ~  -1 + X +  f(region, model="generic1", Cmatrix = Q, constr=TRUE, hyper=list(theta1=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale)), theta2=list(prior="gaussian", param=c(0, 0.01))))
-      model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+
 
 
       #### Compute Moran's I
@@ -338,7 +360,8 @@ binomial_localisedINLA <-
 
       ## Run the final model
       form <- Y ~  -1 + X + f(region, model="generic1", Cmatrix = Q, constr=TRUE, hyper=list(theta1=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale)), theta2=list(prior="gaussian", param=c(0, 0.01))))
-      model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
 
 
       ## Save the results
@@ -373,7 +396,8 @@ binomial_localisedINLA <-
 
       ## Run the final model
       form <- Y ~  -1 + X  +  f(region, model="generic1", Cmatrix = Q, constr=TRUE, hyper=list(theta1=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale)), theta2=list(prior="gaussian", param=c(0, 0.01))))
-      model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
 
 
       ## Save the results
