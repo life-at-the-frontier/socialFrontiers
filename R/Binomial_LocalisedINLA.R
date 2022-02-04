@@ -111,304 +111,188 @@ binomial_localisedINLA <-
   #### Run the model and save the results
   #### Two possible cases depending on whether rho is fixed or estimated
   #######################################################################
+  m=NULL
+  hp=NULL
+
+  #setup fitting parameter given if rho is know or not
   if(fix.rho)
   {
-    #################
-    #### rho is fixed
-    #################
+    m="generic0"
+    hp=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale)))
+  }
+  else
+  {
+    hp=list(theta1=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale)), theta2=list(prior="gaussian", param=c(0, 0.01)))
+    m="generic1"
+  }
 
-    #####################################################################################
-    #### Iterate the estimation of W and Theta until the termination condition is reached
-    #####################################################################################
-    while(difference.current > 0 & difference.minimum >0)
+  #####################################################################################
+  #### Iterate the estimation of W and Theta until the termination condition is reached
+  #####################################################################################
+  while(difference.current > 0 & difference.minimum >0)
+  {
+    #### Compute the current precision matrix
+    if(fix.rho)
     {
-      #### Compute the current precision matrix
       I.n <- diag(rep(1,n))
       W.temp <- - W.current
       diag(W.temp) <- apply(W.current,1,sum)
       Q <- rho * W.temp + (1-rho) * I.n
-
-
-      #### Fit the model with the current W matrix
-      form <- Y ~  -1 + X + f(region, model="generic0", Cmatrix = Q, constr=TRUE, hyper=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale))))
-      if(needscontrol)
-      {
-        model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,
-#                       verbose = T,
-                       control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-      }
-      else
-      {
-        model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,
-#                       verbose = T,
-                       control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-      }
-
-      #### Compute Moran's I
-      fitted <- model$summary.fitted.values[ ,4]
-      residuals <- data.temp$Y - fitted
-      difference <- residuals - mean(residuals)
-      denom <- sum(W) * sum(difference^2)
-      num <- n * sum(difference %*% t(difference) * W)
-      MoransI <- c(MoransI, num/denom)
-
-
-      #### Compute the new W matrix
-      RE.all <- cbind(model$summary.random[[1]]$"0.025quant", model$summary.random[[1]]$"0.975quant")
-      W.new <- array(0, c(n,n))
-
-      for(i in 1:n)
-      {
-        for(j in 1:n)
-        {
-          if(i>j & W[i,j]==1)
-          {
-            RE.temp <- RE.all[c(i, j), ]
-            value <- 1 - as.numeric(RE.temp[1,2]<RE.temp[2,1] | RE.temp[2,2]<RE.temp[1,1])
-            W.new[i,j] <- value
-            W.new[j,i] <- value
-          }else
-          {
-          }
-        }
-      }
-
-
-      #### Determine whether to terminate and save the W matrix
-      W.store <- rbind(W.store, as.numeric(W.new))
-      W.current <- W.new
-      iteration <- iteration + 1
-      difference.all <- rep(NA, iteration)
-
-      for(k in 1:iteration)
-      {
-        difference.all[k] <- sum(abs(W.store[k, ] - W.store[(iteration+1), ])) / 2
-      }
-
-      difference.current <- difference.all[iteration]
-      difference.minimum <- min(difference.all)
-      # the progress
-      cat("This is", iteration, "iteration\n")
     }
-
-
-
-    ########################################
-    #### Determine W and fit the final model
-    ########################################
-    if(difference.current==0)
+    else
     {
-      #### If the W matrix has converged
-      ## Compute Q
-      W.final <- W.current
-      termination.condition <- "Converge"
-      I.n <- diag(rep(1,n))
-      W.temp <- - W.final
-      diag(W.temp) <- apply(W.final,1,sum)
-      Q <- rho * W.temp + (1-rho) * I.n
-
-
-      ## Run the final model
-      form <- Y ~  -1 + X  +  f(region, model="generic0", Cmatrix = Q, constr=TRUE, hyper=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale))))
-      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-
-
-      ## Save the results
-      fixed <- model$summary.fixed[ ,c(4,3,5)]
-      phi <- model$summary.random$region[ , c(5,4,6)]
-      colnames(phi) <- c("Median", "LCI", "UCI")
-      fitted <- model$summary.fitted.values[ ,c(4,3,5)]
-      colnames(fitted) <- c("Median", "LCI", "UCI")
-      residuals <- data.temp$Y - fitted[ ,1]
-      DIC <- c(model$dic$dic, model$dic$p.eff)
-      names(DIC) <- c("DIC", "p.d")
-      hyperparameters <- model$summary.hyperpar[c(4,3,5)]
-      results <- list(beta=fixed, phi=phi, fittedvalues=fitted, DIC=DIC, residuals=residuals, hyperparameters=hyperparameters, W.estimated=W.final, iteration=iteration, termination.condition=termination.condition, n.cycle=NA)
-    }else
-    {
-      #### The model has cycled
-      ## Choose W by minimising Moran's I
-      start.cycle <- which(difference.all==0)[1] + 1
-      cycle <- start.cycle:(iteration+1)
-      which.moransI <- which(min(abs(MoransI[cycle]))==abs(MoransI[cycle]))
-      W.index <- cycle[which.moransI]
-      W.final <- matrix(W.store[W.index, ], byrow=TRUE, nrow=n, ncol=n)
-
-
-      ## Compute Q
-      termination.condition <- "Cycle"
-      n.cycle <- length(cycle)
-      I.n <- diag(rep(1,n))
-      W.temp <- - W.final
-      diag(W.temp) <- apply(W.final,1,sum)
-      Q <- rho * W.temp + (1-rho) * I.n
-
-
-      ## Run the final model
-      form <- Y ~  -1 + X  +  f(region, model="generic0", Cmatrix = Q, constr=TRUE, hyper=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale))))
-      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-
-
-      ## Save the results
-      fixed <- model$summary.fixed[ ,c(4,3,5)]
-      phi <- model$summary.random$region[ , c(5,4,6)]
-      colnames(phi) <- c("Median", "LCI", "UCI")
-      fitted <- model$summary.fitted.values[ ,c(4,3,5)]
-      colnames(fitted) <- c("Median", "LCI", "UCI")
-      residuals <- data.temp$Y - fitted[ ,1]
-      DIC <- c(model$dic$dic, model$dic$p.eff)
-      names(DIC) <- c("DIC", "p.d")
-      hyperparameters <- model$summary.hyperpar[c(4,3,5)]
-      results <- list(beta=fixed, phi=phi, fittedvalues=fitted, DIC=DIC, residuals=residuals, hyperparameters=hyperparameters, W.estimated=W.final, iteration=iteration, termination.condition=termination.condition, n.cycle=n.cycle)
-    }
-  }else
-  {
-    ##########################################
-    #### rho is estimated as part of the model
-    ##########################################
-
-    #####################################################################################
-    #### Iterate the estimation of W and Theta until the termination condition is reached
-    #####################################################################################
-    while(difference.current > 0 & difference.minimum >0)
-    {
-      #### Compute the current precision matrix
       W.temp <- W.current
       diag(W.temp) <- rep(1,n) - apply(W.current,1,sum)
       Q <- W.temp
+    }
 
 
-      #### Fit the model with the current W matrix
-      form <- Y ~  -1 + X +  f(region, model="generic1", Cmatrix = Q, constr=TRUE, hyper=list(theta1=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale)), theta2=list(prior="gaussian", param=c(0, 0.01))))
-      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+    #### Fit the model with the current W matrix
+    form <- Y ~  -1 + X + f(region, model=m, Cmatrix = Q, constr=TRUE, hyper=hp)
+    if(needscontrol)  model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+    else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,  control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE)) 
+
+    #### Compute Moran's I
+    fitted <- model$summary.fitted.values[ ,4]
+    residuals <- data.temp$Y - fitted
+    difference <- residuals - mean(residuals)
+    denom <- sum(W) * sum(difference^2)
+    num <- n * sum(difference %*% t(difference) * W)
+    MoransI <- c(MoransI, num/denom)
 
 
+    #### Compute the new W matrix
+    RE.all <- cbind(model$summary.random[[1]]$"0.025quant", model$summary.random[[1]]$"0.975quant")
+    W.new <- array(0, c(n,n))
 
-      #### Compute Moran's I
-      fitted <- model$summary.fitted.values[ ,4]
-      residuals <- data.temp$Y - fitted
-      difference <- residuals - mean(residuals)
-      denom <- sum(W) * sum(difference^2)
-      num <- n * sum(difference %*% t(difference) * W)
-      MoransI <- c(MoransI, num/denom)
-
-
-      #### Compute the new W matrix
-      RE.all <- cbind(model$summary.random[[1]]$"0.025quant", model$summary.random[[1]]$"0.975quant")
-      W.new <- array(0, c(n,n))
-
-      for(i in 1:n)
+    for(i in 1:n)
+    {
+      for(j in 1:n)
       {
-        for(j in 1:n)
+        if(i>j & W[i,j]==1)
         {
-          if(i>j & W[i,j]==1)
-          {
-            RE.temp <- RE.all[c(i, j), ]
-            value <- 1 - as.numeric(RE.temp[1,2]<RE.temp[2,1] | RE.temp[2,2]<RE.temp[1,1])
-            W.new[i,j] <- value
-            W.new[j,i] <- value
-          }else
-          {
-          }
+          RE.temp <- RE.all[c(i, j), ]
+          value <- 1 - as.numeric(RE.temp[1,2]<RE.temp[2,1] | RE.temp[2,2]<RE.temp[1,1])
+          W.new[i,j] <- value
+          W.new[j,i] <- value
+        }else
+        {
         }
       }
-
-
-      #### Determine whether to terminate and save the W matrix
-      W.store <- rbind(W.store, as.numeric(W.new))
-      W.current <- W.new
-      iteration <- iteration + 1
-      difference.all <- rep(NA, iteration)
-
-      for(k in 1:iteration)
-      {
-        difference.all[k] <- sum(abs(W.store[k, ] - W.store[(iteration+1), ])) / 2
-      }
-
-      difference.current <- difference.all[iteration]
-      difference.minimum <- min(difference.all)
-
-      # the progress
-      cat("This is", iteration, "iteration\n")
-
     }
 
 
+    #### Determine whether to terminate and save the W matrix
+    W.store <- rbind(W.store, as.numeric(W.new))
+    W.current <- W.new
+    iteration <- iteration + 1
+    difference.all <- rep(NA, iteration)
 
-    ########################################
-    #### Determine W and fit the final model
-    ########################################
-    if(difference.current==0)
+    for(k in 1:iteration)
     {
-      #### If the W matrix has converged
-      ## Compute Q
-      W.final <- W.current
-      termination.condition <- "Converge"
-      W.temp <- W.final
-      diag(W.temp) <- rep(1,n) - apply(W.final,1,sum)
-      Q <- W.temp
-
-
-      ## Run the final model
-      form <- Y ~  -1 + X + f(region, model="generic1", Cmatrix = Q, constr=TRUE, hyper=list(theta1=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale)), theta2=list(prior="gaussian", param=c(0, 0.01))))
-      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-
-
-      ## Save the results
-      fixed <- model$summary.fixed[ ,c(4,3,5)]
-      phi <- model$summary.random$region[ , c(5,4,6)]
-      colnames(phi) <- c("Median", "LCI", "UCI")
-      fitted <- model$summary.fitted.values[ ,c(4,3,5)]
-      colnames(fitted) <- c("Median", "LCI", "UCI")
-      residuals <- data.temp$Y - fitted[ ,1]
-      DIC <- c(model$dic$dic, model$dic$p.eff)
-      names(DIC) <- c("DIC", "p.d")
-      hyperparameters <- model$summary.hyperpar[ , c(4,3,5)]
-      results <- list(beta=fixed, phi=phi, fittedvalues=fitted, DIC=DIC, residuals=residuals, hyperparameters=hyperparameters, W.estimated=W.final, iteration=iteration, termination.condition=termination.condition, n.cycle=NA)
-    }else
-    {
-      #### The model has cycled
-      ## Choose W by minimising Moran's I
-      start.cycle <- which(difference.all==0)[1] + 1
-      cycle <- start.cycle:(iteration+1)
-      which.moransI <- which(min(abs(MoransI[cycle]))==abs(MoransI[cycle]))
-      W.index <- cycle[which.moransI]
-      W.final <- matrix(W.store[W.index, ], byrow=TRUE, nrow=n, ncol=n)
-
-
-      ## Compute Q
-      termination.condition <- "Cycle"
-      n.cycle <- length(cycle)
-      W.temp <- W.final
-      diag(W.temp) <- rep(1,n) - apply(W.final,1,sum)
-      Q <- W.temp
-
-
-      ## Run the final model
-      form <- Y ~  -1 + X  +  f(region, model="generic1", Cmatrix = Q, constr=TRUE, hyper=list(theta1=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale)), theta2=list(prior="gaussian", param=c(0, 0.01))))
-      if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-      else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-
-
-      ## Save the results
-      fixed <- model$summary.fixed[ ,c(4,3,5)]
-      phi <- model$summary.random$region[ , c(5,4,6)]
-      colnames(phi) <- c("Median", "LCI", "UCI")
-      fitted <- model$summary.fitted.values[ ,c(4,3,5)]
-      colnames(fitted) <- c("Median", "LCI", "UCI")
-      residuals <- data.temp$Y - fitted[ ,1]
-      DIC <- c(model$dic$dic, model$dic$p.eff)
-      names(DIC) <- c("DIC", "p.d")
-      hyperparameters <- model$summary.hyperpar[ ,c(4,3,5)]
-      results <- list(beta=fixed, phi=phi, fittedvalues=fitted, DIC=DIC, residuals=residuals, hyperparameters=hyperparameters, W.estimated=W.final, iteration=iteration, termination.condition=termination.condition, n.cycle=n.cycle)
+      difference.all[k] <- sum(abs(W.store[k, ] - W.store[(iteration+1), ])) / 2
     }
+
+    difference.current <- difference.all[iteration]
+    difference.minimum <- min(difference.all)
+    # the progress
+    cat("This is", iteration, "iteration\n")
   }
 
 
+
+  ########################################
+  #### Determine W and fit the final model
+  ########################################
+  if(difference.current==0)
+  {
+    #### If the W matrix has converged
+    ## Compute Q
+    W.final <- W.current
+    termination.condition <- "Converge"
+    Q=NULL
+    if(fix.rho)
+    {
+      I.n <- diag(rep(1,n))
+      W.temp <- - W.final
+      diag(W.temp) <- apply(W.final,1,sum)
+      Q <- rho * W.temp + (1-rho) * I.n
+    }
+    else
+    {
+      W.temp <- W.final
+      diag(W.temp) <- rep(1,n) - apply(W.final,1,sum)
+      Q <- W.temp
+    }
+
+    ## Run the final model
+    form <- Y ~  -1 + X + f(region, model=m, Cmatrix = Q, constr=TRUE, hyper=hp)
+    if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+    else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+
+
+    ## Save the results
+    fixed <- model$summary.fixed[ ,c(4,3,5)]
+    phi <- model$summary.random$region[ , c(5,4,6)]
+    colnames(phi) <- c("Median", "LCI", "UCI")
+    fitted <- model$summary.fitted.values[ ,c(4,3,5)]
+    colnames(fitted) <- c("Median", "LCI", "UCI")
+    residuals <- data.temp$Y - fitted[ ,1]
+    DIC <- c(model$dic$dic, model$dic$p.eff)
+    names(DIC) <- c("DIC", "p.d")
+    if(fix.rho) hyperparameters <- model$summary.hyperpar[c(4,3,5)]
+    else hyperparameters <- model$summary.hyperpar[ ,c(4,3,5)]
+    results <- list(beta=fixed, phi=phi, fittedvalues=fitted, DIC=DIC, residuals=residuals, hyperparameters=hyperparameters, W.estimated=W.final, iteration=iteration, termination.condition=termination.condition, n.cycle=NA)
+  }else
+  {
+    #### The model has cycled
+    ## Choose W by minimising Moran's I
+    start.cycle <- which(difference.all==0)[1] + 1
+    cycle <- start.cycle:(iteration+1)
+    which.moransI <- which(min(abs(MoransI[cycle]))==abs(MoransI[cycle]))
+    W.index <- cycle[which.moransI]
+    W.final <- matrix(W.store[W.index, ], byrow=TRUE, nrow=n, ncol=n)
+
+
+    ## Compute Q
+    termination.condition <- "Cycle"
+    n.cycle <- length(cycle)
+    Q=NULL
+    if(fix.rho)
+    {
+      I.n <- diag(rep(1,n))
+      W.temp <- - W.final
+      diag(W.temp) <- apply(W.final,1,sum)
+      Q <- rho * W.temp + (1-rho) * I.n
+    }
+    else
+    {
+      W.temp <- W.final
+      diag(W.temp) <- rep(1,n) - apply(W.final,1,sum)
+      Q <- W.temp
+    }
+
+
+    ## Run the final model
+    form <- Y ~  -1 + X + f(region, model=m, Cmatrix = Q, constr=TRUE, hyper=hp)
+    if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+    else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+
+
+    ## Save the results
+    fixed <- model$summary.fixed[ ,c(4,3,5)]
+    phi <- model$summary.random$region[ , c(5,4,6)]
+    colnames(phi) <- c("Median", "LCI", "UCI")
+    fitted <- model$summary.fitted.values[ ,c(4,3,5)]
+    colnames(fitted) <- c("Median", "LCI", "UCI")
+    residuals <- data.temp$Y - fitted[ ,1]
+    DIC <- c(model$dic$dic, model$dic$p.eff)
+    names(DIC) <- c("DIC", "p.d")
+    if(fix.rho) hyperparameters <- model$summary.hyperpar[c(4,3,5)]
+    else hyperparameters <- model$summary.hyperpar[ ,c(4,3,5)]
+    results <- list(beta=fixed, phi=phi, fittedvalues=fitted, DIC=DIC, residuals=residuals, hyperparameters=hyperparameters, W.estimated=W.final, iteration=iteration, termination.condition=termination.condition, n.cycle=n.cycle)
+  }
+  
   #### Return the results
   return(results)
 }
