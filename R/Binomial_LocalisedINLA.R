@@ -111,11 +111,6 @@ binomial_localisedINLA <-
   #### Run the model and save the results
   #### Two possible cases depending on whether rho is fixed or estimated
   #######################################################################
-
-  #######################################################################
-  #### Run the model and save the results
-  #### Two possible cases depending on whether rho is fixed or estimated
-  #######################################################################
   if(fix.rho)
   {
     #################
