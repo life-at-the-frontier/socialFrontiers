@@ -13,7 +13,8 @@ binomial_localisedINLA <-
            prior.beta.mean = 0,
            prior.beta.precision = 0.001,
            prior.precision.shape = 0.001,
-           prior.precision.scale = 0.001)
+           prior.precision.scale = 0.001,
+           verbose=FALSE)
   {
   ##############################################
   #### Check for INLA version to be able adapt 
@@ -68,8 +69,8 @@ binomial_localisedINLA <-
   #### Run the model
   form <- Y ~ -1 + X +  f(region, model="iid", constr=TRUE, hyper=list(theta=list(prior="loggamma", param=c(prior.precision.shape, prior.precision.scale))))
   model = NULL
-  if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-  else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
+  if(needscontrol) model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE),verbose=verbose)
+  else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials, control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE),verbose=verbose)
 
 
   #### Compute Morans I
@@ -134,13 +135,13 @@ binomial_localisedINLA <-
       if(needscontrol)
       {
         model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,
-#                       verbose = T,
+                       verbose = verbose,
                        control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
       }
       else
       {
         model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,
-#                       verbose = T,
+                       verbose = verbose,
                        control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
       }
 
