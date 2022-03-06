@@ -93,7 +93,6 @@ frontier_as_sf <-
 
     borders.sf <-
       do.call(rbind, borders.sf)
-    print(proc.time() - x)
 
     ##  Add the frontier label
     borders.sf$frontier <-
