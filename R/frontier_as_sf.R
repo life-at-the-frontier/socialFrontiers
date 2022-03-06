@@ -89,25 +89,10 @@ frontier_as_sf <-
 
     x <- proc.time()
 
-    for (i in 1:nrow(edgelist_borders)) {
-      #i <- 1 # for testing
-      zone1 <- edgelist_borders$col[i]
-      zone2 <- edgelist_borders$row[i]
-
-      borders.sf[[i]] <-
-        data.for.borders[zone1, ] %>% st_intersection(data.for.borders[zone2, ]) # now we are intersecting polys to get borders
-      #borders.sf$frontier[i] <- edgelist_borders$frontier[i]
-
-      if (!silent & (i %% 10 == 0)) {
-        print(i)
-      }
-
-    }
-
+    borders.sf=apply(edgelist_borders,1,function(edge) st_intersection(data.for.borders[edge, ])[2,]) 
 
     borders.sf <-
       do.call(rbind, borders.sf)
-    print(proc.time() - x)
 
     ##  Add the frontier label
     borders.sf$frontier <-
@@ -123,7 +108,7 @@ frontier_as_sf <-
       ## Fix multiple entries caused by geom_collections -- eg. multiple intersections
       borders.sf <-
         borders.sf %>%
-        group_by(id, id.1, phi, phi.1) %>%
+        group_by(id, phi) %>%
         summarise(
           hotfix = T
         ) %>%
