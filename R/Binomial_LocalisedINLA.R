@@ -1,7 +1,7 @@
 #' Run a Binomial Localised spatial autoregressive model using INLA
-#' @author Guanpeng Dong and Nema Dean
+#' @author Duncan Lee, Guanpeng Dong and Nema Dean
 #' @details
-#' Need filling in by original authors
+#' Original code adapted from Lee and Mitchell
 #' @import INLA
 
 binomial_localisedINLA <-
