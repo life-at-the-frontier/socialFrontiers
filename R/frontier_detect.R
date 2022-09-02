@@ -42,7 +42,7 @@
 
 #' @export
 frontier_detect <-
-  function(y, data, n.trials, W.nb = NULL, ...) {
+  function(y, data, n.trials, W.nb = NULL, fix.rho = TRUE, rho = 0.99, ...) {
 
     ## Initial check of format; data needs to be spatialpolygon or sf
     data.class <- class(data)
@@ -86,8 +86,8 @@ frontier_detect <-
       formula = data2[[y]] ~ 1, ## y is variable name
       W = W,
       Ntrials = data2[[n.trials]], ##n.trials is the trial variable
-      fix.rho = TRUE,
-      rho = 0.99
+      rho=rho,
+      fix.rho=fix.rho
     )
 
     print(proc.time() - x)
