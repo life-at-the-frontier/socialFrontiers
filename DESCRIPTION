@@ -7,6 +7,11 @@ Authors@R: c(
            role = c("aut", "cre"),
            email = "meng_le.zhang@sheffield.ac.uk",
            comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Duncan",
+           family = "Lee",
+           role = c("aut"),
+           email = "Duncan.Lee@glasgow.ac.uk",
+           comment = c(ORCID = "YOUR-ORCID-ID")),
     person(given = "Nema",
            family = "Dean",
            role = c("aut"),
@@ -15,7 +20,7 @@ Authors@R: c(
     person(given = "Gavin (Guanpeng)",
            family = "Dong",
            role = c("aut"),
-           email = "Nema.Dean@glasgow.ac.uk",
+           email = "guanpengdong@gmail.com",
            comment = c(ORCID = "YOUR-ORCID-ID"))
            )
 Description: This package implements algorithms for detecting social frontiers from spatial polygon data.
