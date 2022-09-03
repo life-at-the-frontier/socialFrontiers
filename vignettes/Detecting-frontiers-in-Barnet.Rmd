@@ -104,17 +104,3 @@ tm_shape(barnet) +
   tm_fill(col= 'propNonUK') +
   qtm(borders_sf) # works
 ```
-
-Check difference when using non fixed rho
-```{r nonfixed, message=FALSE}
-
-frontier_model <- frontier_detect( data = barnet, y = y, n.trials = n.trials,fix.rho=FALSE)
-
-suppressWarnings(borders_sf <- frontier_as_sf(frontier_model, silent = T))
-
-class(borders_sf) 
-tm_shape(barnet) +
-  tm_fill(col= 'propNonUK') +
-  qtm(borders_sf) # works
-```
-
