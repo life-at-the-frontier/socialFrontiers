@@ -47,21 +47,21 @@ frontier_as_sf <-
 
     ##  An edge list of bordering polygons with an indicator frontier if that border
     ##  is a frontier or not
-    egdelist_frontier <-
+    edgelist_frontier <-
       which(frontier_model$W.frontiers == 0, arr.ind = T) %>% # finds non-NA values (which row and col) and arr.ind returns it as a matrix
       data.frame(frontier = T) # takes the table and turns it into data.frame and adds a row called frontier
 
-    egdelist_nonfrontier <-
+    edgelist_nonfrontier <-
       which(frontier_model$W.frontiers == 1, arr.ind = T) %>%
       data.frame(frontier = F) # finds non-NA values (which row and col) and arr.ind returns it as a matrix
 
     if (non_frontiers == T) {
       edgelist_borders <-
-        egdelist_frontier %>%
-        rbind(egdelist_nonfrontier) # I want all the indicies for social frontiers and non-frontiers in
+        edgelist_frontier %>%
+        rbind(edgelist_nonfrontier) # I want all the indicies for social frontiers and non-frontiers in
     } else{
       edgelist_borders <-
-        egdelist_frontier
+        edgelist_frontier
     }
 
     ##  Filter out everything from the data except id and phi -- to minimise memory
