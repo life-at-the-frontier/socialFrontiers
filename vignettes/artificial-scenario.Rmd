@@ -1,9 +1,9 @@
 ---
-title: "Detecting-frontiers-in-artificial-scenario [Placeholder vignette]"
+title: "Detecting-frontiers-in-artificial-scenario"
 author: "Simon Carrignon"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Detecting-frontiers-in-Barnet}
+  %\VignetteIndexEntry{Detecting-frontiers-in-artificial-scenario}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -53,7 +53,9 @@ plot(regions)
 We populate our space with "people" (which are only the total number of measurement possible on each region). As in most social phenomena population are exponentially distributed we here have population size that are log normally distributed with E(log(Y))=5 
 
 ```{r}
-regions=st_bind_cols(pop=round(exp(rnorm(n=length(regions),mean=log(10),sd=log(2)))),regions)
+logmean=10
+logsd=2
+regions=st_bind_cols(pop=round(exp(rnorm(n=length(regions),mean=log(logmean),sd=log(logsd)))),regions)
 
 plot(regions)
 ```
@@ -79,7 +81,46 @@ frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "po
 plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation")
 ```
 
+From this example, and in all logic, there is not frontier:
 
+```{r}
+summary(frontier_model)
+```
 
+```{r}
+
+logmean=500
+logsd=5
+regions$pop=round(exp(rnorm(n=nrow(regions),mean=log(logmean),sd=log(logsd))))
+regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+regions$prop=regions$distrib/regions$pop
+
+plot(regions[,"prop"])
+frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+
+plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation")
+plot(regions[,"prop"],reset=F)
+plot(frontier_as_sf(frontier_model),add=T,col="green",lwd=2)
+
+```
+
+Lets add a area, in the right part of the circle where the likelihood of adopting the new trait is dived by 10. We will simply use a point and a buffer around it to select region of less adoption.
+
+```{r}
+plot(st_geometry(regions),reset=F)
+refractaire=st_buffer(st_as_sf(cbind.data.frame(0.6,.2),coords=1:2,crs=st_crs(regions)),.45)
+plot(refractaire,add=T)
+plot(regions[unlist(st_contains(refractaire,regions)),],add=T,col="red")
+prob_adoption[st_contains(refractaire,regions)[[1]]]=prob_adoption[st_contains(refractaire,regions)[[1]]]/10
+regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+regions$prop=regions$distrib/regions$pop
+plot(regions[,"prop"])
+frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+
+plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation")
+plot(regions[,"prop"],reset=F)
+plot(frontier_as_sf(frontier_model),add=T,col="green",lwd=2)
+
+```
 
 
