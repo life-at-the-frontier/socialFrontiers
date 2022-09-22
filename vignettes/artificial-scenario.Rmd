@@ -9,10 +9,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+knitr::opts_chunk$set(collapse=TRUE,fig.show="hold", comment = "#>",fig.align="center")
 ```
 
 ```{r setup}
@@ -123,4 +120,39 @@ plot(frontier_as_sf(frontier_model),add=T,col="green",lwd=2)
 
 ```
 
+
+Let see how sample size affect the frontier detection:
+
+```{r}
+
+logmean=500
+logsd=5
+regions$pop=round(exp(rnorm(n=nrow(regions),mean=log(logmean),sd=log(logsd))))
+regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+regions$prop=regions$distrib/regions$pop
+
+plot(regions[,"prop"])
+frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+
+plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation")
+plot(regions[,"prop"],reset=F)
+plot(frontier_as_sf(frontier_model),add=T,col="green",lwd=2)
+
+```
+
+Lets add a area, in the right part of the circle where the likelihood of adopting the new trait is dived by 10. We will simply use a point and a buffer around it to select region of less adoption.
+
+```{r,out.width="45%"}
+for(logmean in c(5,50,500)){
+    logsd=2
+    regions$pop=round(exp(rnorm(n=nrow(regions),mean=log(logmean),sd=log(logsd))))
+    regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+    regions$prop=regions$distrib/regions$pop
+    frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+    frtrs=frontier_as_sf(frontier_model)
+    plot(regions[,"distrib"],reset=F,main=paste("log mean",logmean))
+    plot(frtrs,add=T,col="green",lwd=2)
+}
+
+```
 
