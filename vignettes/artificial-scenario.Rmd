@@ -1,0 +1,186 @@
+---
+title: "Detecting-frontiers-in-artificial-scenario"
+author: "Simon Carrignon"
+output: 
+    html_vignette:
+        section_numbers: true
+        toc: true
+        toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{Detecting-frontiers-in-artificial-scenario}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse=TRUE,fig.show="hold", comment = "#>",fig.align="center",fig.cap="",fig.width=7,fig.height=7,out.width="65%")
+```
+
+```{r setup}
+library(devtools)
+devtools::load_all(".")
+library(sf)
+```
+
+We first create a fake spatial area made of simple geometric form:
+
+```{r}
+
+
+
+# prepare "circle data"
+radius = 1
+resolution=200
+theta = seq(0, 2 * pi, length = resolution) # how finely tune is our ci
+
+xcoords = radius * cos(theta) + 0
+ycoords = radius * sin(theta) + 0
+
+circle_points=cbind.data.frame(xcoords,ycoords,crs="4326")
+circle.sf=st_as_sf(circle_points,coords=1:2)
+circle.sf=st_cast(st_combine(circle.sf),"POLYGON")
+plot(circle.sf,col=adjustcolor("pink",.2))
+
+```
+
+We have a perfectly circular island, that we will now split in equally sized regions
+
+```{r}
+
+protogrid=st_make_grid(circle.sf)
+regions=st_intersection(circle.sf,protogrid)
+plot(regions,col=adjustcolor("pink",.2))
+```
+We populate our space with "people" (which are only the total number of measurement possible on each region). As in most social phenomena population are exponentially distributed we here have population size that are log normally distributed with E(log(Y))=5 
+
+```{r}
+logmean=10
+logsd=2
+regions=st_bind_cols(pop=round(exp(rnorm(n=length(regions),mean=log(logmean),sd=log(logsd)))),regions)
+
+plot(regions)
+```
+
+We will then introduce a  binomial process whos probability decrease given the distance to it's origin points. If "pop" are households and `origin` the origination point of new cultural behavior, then `distrib` will show how many houselod adopted this specific behavior. If they are individuals and `origin` is the origination point of a sicknes, it will represent the number of people that get aftected....
+
+To simplify the definition of origin it's simply the bottom of the circle:
+```{r,out.width="45%",fig.cap="sampling of traits on the artificial space"}
+
+origin=st_as_sf(cbind.data.frame(0,-1),coords=1:2,crs=st_crs(regions))
+distances=st_distance(regions,origin)
+prob_adoption=1-distances/max(distances)
+plot(cbind(regions,distances)[,"distances"])
+regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+plot(regions[,"distrib"])
+```
+
+First let see how well the ICAR regression can find the original probabilities of adoption/infection:
+
+```{r}
+frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+
+plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation")
+```
+
+
+We can compare the results with estimation using another methods using nimble:
+
+```{r nimble}
+require(nimble)
+```
+
+
+
+
+From this example, and in all logic, there is not frontier:
+
+```{r}
+summary(frontier_model)
+```
+
+```{r,out.width="45%",fig.cap="Result with larger sample size"}
+
+logmean=500
+logsd=5
+regions$pop=round(exp(rnorm(n=nrow(regions),mean=log(logmean),sd=log(logsd))))
+regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+regions$prop=regions$distrib/regions$pop
+
+plot(regions[,"prop"])
+frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+
+plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation")
+plot(regions[,"prop"],reset=F)
+plot(frontier_as_sf(frontier_model),add=T,col="green",lwd=2)
+
+```
+
+Lets add an area, in the right part of the circle where the likelihood of adopting the new trait is dived by 10. We will simply use a point and a buffer around it to select region of less adoption.
+
+```{r,out.width="45%",fig.cap="Adding some gaulois refractaire to change "}
+plot(st_geometry(regions),reset=F,col=adjustcolor("pink",.2))
+refractaire=st_buffer(st_as_sf(cbind.data.frame(0.6,.2),coords=1:2,crs=st_crs(regions)),.45)
+plot(refractaire,add=T)
+plot(regions[unlist(st_contains(refractaire,regions)),],add=T,col="red")
+prob_adoption[st_contains(refractaire,regions)[[1]]]=prob_adoption[st_contains(refractaire,regions)[[1]]]/10
+regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+regions$prop=regions$distrib/regions$pop
+plot(regions[,"prop"])
+frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+
+plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation")
+plot(regions[,"prop"],reset=F)
+plot(frontier_as_sf(frontier_model),add=T,col="green",lwd=2)
+
+```
+
+
+Let see how sample size affect the frontier detection:
+
+
+```{r ssize,out.width="30%",fig.cap="Impact of sample size",fig.width=10,fig.height=7}
+for(logmean in c(5,50,500)){
+    logsd=2
+    regions$pop=round(exp(rnorm(n=nrow(regions),mean=log(logmean),sd=log(logsd))))
+    regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+    regions$prop=regions$distrib/regions$pop
+    frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+    frtrs=frontier_as_sf(frontier_model)
+    plot(density(regions$pop),main=paste("Sample size distribution"))
+    plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation",main=paste("Distance to true proba with median sample size ~",logmean))
+    plot(regions[,"distrib"],reset=F,main=paste("Frontier detection with median sample size ~",logmean))
+    plot(st_geometry(frtrs),add=T,col="green",lwd=2)
+    layout(1)
+    par(mar=c(5,4,2,2))
+}
+
+```
+
+We can see when than with low sample size, no frontieres is detected ; while when sample size are hight, frontiers are detected even for smoooth gradient. Let see if where the border is impact, and if (obviously)  it's easier to detect it when it's close to high density regions.
+
+```{r regpos,out.width="45%",fig.cap="impact of border position on border detection"}
+coordtest=list(c(-0.53,-.38),c(-0.03,.08),c(-0.1,.8))
+for( crds in coordtest ){
+    plot(st_geometry(regions),reset=F,,col=adjustcolor("pink",.2))
+    refractaire=st_buffer(st_as_sf(cbind.data.frame(crds[1],crds[2]),coords=1:2,crs=st_crs(regions)),.45)
+    plot(regions[unlist(st_contains(refractaire,regions)),],add=T,col="red")
+    plot.new()
+    par(mfrow=c(1,1))
+    prob_adoption=1-distances/max(distances)
+    prob_adoption[st_contains(refractaire,regions)[[1]]]=prob_adoption[st_contains(refractaire,regions)[[1]]]/10
+    for(logmean in c(5,50,500)){
+        logsd=2
+        regions$pop=round(exp(rnorm(n=nrow(regions),mean=log(logmean),sd=log(logsd))))
+        regions$distrib=rbinom(n=nrow(regions),size=regions$pop,prob=prob_adoption)
+        regions$prop=regions$distrib/regions$pop
+        frontier_model <- frontier_detect( data = regions, y = "distrib", n.trials = "pop")
+        frtrs=frontier_as_sf(frontier_model)
+        plot(density(regions$pop),main=paste("Sample size distribution"))
+        plot(regions[,"distrib"],reset=F,main=paste("Frontier detection with median sample size ~",logmean))
+        plot(frtrs,add=T,col="green",lwd=2)
+        layout(1)
+        par(mar=c(5,4,2,2))
+    }
+}
+```
+
