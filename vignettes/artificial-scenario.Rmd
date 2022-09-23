@@ -118,7 +118,7 @@ plot(frontier_as_sf(frontier_model),add=T,col="green",lwd=2)
 Lets add an area, in the right part of the circle where the likelihood of adopting the new trait is dived by 10. We will simply use a point and a buffer around it to select region of less adoption.
 
 ```{r,out.width="45%",fig.cap="Adding some gaulois refractaire to change "}
-plot(st_geometry(regions),reset=F)
+plot(st_geometry(regions),reset=F,col=adjustcolor("pink",.2))
 refractaire=st_buffer(st_as_sf(cbind.data.frame(0.6,.2),coords=1:2,crs=st_crs(regions)),.45)
 plot(refractaire,add=T)
 plot(regions[unlist(st_contains(refractaire,regions)),],add=T,col="red")
@@ -149,7 +149,7 @@ for(logmean in c(5,50,500)){
     plot(density(regions$pop),main=paste("Sample size distribution"))
     plot(prob_adoption,frontier_model$fittedvalues[,1],xlab="real value",ylab="ICAR estimation",main=paste("Distance to true proba with median sample size ~",logmean))
     plot(regions[,"distrib"],reset=F,main=paste("Frontier detection with median sample size ~",logmean))
-    plot(st_geometry(frtrs),add=T,col="green",lwd=2,reset=T)
+    plot(st_geometry(frtrs),add=T,col="green",lwd=2)
     layout(1)
     par(mar=c(5,4,2,2))
 }
@@ -158,12 +158,11 @@ for(logmean in c(5,50,500)){
 
 We can see when than with low sample size, no frontieres is detected ; while when sample size are hight, frontiers are detected even for smoooth gradient. Let see if where the border is impact, and if (obviously)  it's easier to detect it when it's close to high density regions.
 
-```{r regpos,out.width="30%",fig.cap="impact of border position on border detection"}
+```{r regpos,out.width="45%",fig.cap="impact of border position on border detection"}
 coordtest=list(c(-0.53,-.38),c(-0.03,.08),c(-0.1,.8))
 for( crds in coordtest ){
-    plot(st_geometry(regions),reset=F)
+    plot(st_geometry(regions),reset=F,,col=adjustcolor("pink",.2))
     refractaire=st_buffer(st_as_sf(cbind.data.frame(crds[1],crds[2]),coords=1:2,crs=st_crs(regions)),.45)
-    plot(refractaire,add=T)
     plot(regions[unlist(st_contains(refractaire,regions)),],add=T,col="red")
     plot.new()
     par(mfrow=c(1,1))
@@ -178,7 +177,7 @@ for( crds in coordtest ){
         frtrs=frontier_as_sf(frontier_model)
         plot(density(regions$pop),main=paste("Sample size distribution"))
         plot(regions[,"distrib"],reset=F,main=paste("Frontier detection with median sample size ~",logmean))
-        plot(frtrs,add=T,col="green",lwd=2,reset=T)
+        plot(frtrs,add=T,col="green",lwd=2)
         layout(1)
         par(mar=c(5,4,2,2))
     }
