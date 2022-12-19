@@ -53,7 +53,7 @@ This package isn't on CRAN because I cannot maintain it. If you encounter any er
 2. Install the checkpoint package. If your version of R is too old then I recommend downloading and installing an older version of checkpoint from [here](https://cran.r-project.org/src/contrib/Archive/checkpoint/)
 3. Before running anything set up checkpoint. This will ensure that you are using archived R packages:
 
-````
+```
 library(checkpoint)
 checkpoint('2020-01-01')
 ```
