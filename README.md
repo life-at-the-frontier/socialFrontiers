@@ -52,16 +52,21 @@ This package isn't on CRAN because I cannot maintain it. If you encounter any er
 1. Download version R v4.0.0 and install 
 2. Install the checkpoint package. If your version of R is too old then I recommend downloading and installing an older version of checkpoint from [here](https://cran.r-project.org/src/contrib/Archive/checkpoint/)
 3. Before running anything set up checkpoint. This will ensure that you are using archived R packages:
+
 ````
 library(checkpoint)
 checkpoint('2020-01-01')
 ```
+
 4. Install an older version of INLA. I would check the INLA website for instructions but I usually encounter error. Best to download and install an older verstion from their archives [here](https://inla.r-inla-download.org/R/stable/src/contrib/). I recommend version 18.12.12.
+
 5. Install this package
+
 ```r
 require(devtools)
 install_github("menglezhang/socialfrontiers", build_opts = c("--no-resave-data", "--no-manual"), build_vignettes = TRUE)
 ```
+
 6. Then run your analysis and save the outputs for use elsewhere (e.g. in newer versions of R, python etc). 
 
 
