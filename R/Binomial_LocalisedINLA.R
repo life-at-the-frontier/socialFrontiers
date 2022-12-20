@@ -16,8 +16,8 @@ binomial_localisedINLA <-
            prior.precision.scale = 0.001)
   {
   ##############################################
-  #### Check for INLA version to be able adapt 
-  #### call in consequences 
+  #### Check for INLA version to be able adapt
+  #### call in consequences
   inla.version= strsplit(as.character(packageVersion("INLA")),"\\.")
   inla.version= sapply(inla.version,as.numeric)
   needscontrol= (inla.version[1]<22 && inla.version[2]<7)
@@ -32,7 +32,7 @@ binomial_localisedINLA <-
   #### Design matrix
   ## Create the matrix
   X <- try(suppressWarnings(model.matrix(object=attr(frame, "terms"), data=frame)), silent=TRUE)
-  if(class(X)=="try-error") stop("the covariate matrix contains inappropriate values.", call.=FALSE)
+  if("try-error" %in% class(X)) stop("the covariate matrix contains inappropriate values.", call.=FALSE)
   if(sum(is.na(X))>0) stop("the covariate matrix contains missing 'NA' values.", call.=FALSE)
 
   n <- nrow(X)
@@ -150,7 +150,7 @@ binomial_localisedINLA <-
     #### Fit the model with the current W matrix
     form <- Y ~  -1 + X + f(region, model=m, Cmatrix = Q, constr=TRUE, hyper=hp)
     if(needscontrol)  model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,control.results=list(return.marginals.predictor=TRUE), control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
-    else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,  control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE)) 
+    else model  =  inla(form, family="binomial", data=data.temp, Ntrials=Ntrials,  control.fixed=list(mean=prior.beta.mean, mean.intercept=prior.beta.mean, prec=prior.beta.precision, prec.intercept=prior.beta.precision), control.compute=list(dic=TRUE, mlik=TRUE), control.predictor=list(compute=TRUE))
 
     #### Compute Moran's I
     fitted <- model$summary.fitted.values[ ,4]
@@ -292,7 +292,7 @@ binomial_localisedINLA <-
     else hyperparameters <- model$summary.hyperpar[ ,c(4,3,5)]
     results <- list(beta=fixed, phi=phi, fittedvalues=fitted, DIC=DIC, residuals=residuals, hyperparameters=hyperparameters, W.estimated=W.final, iteration=iteration, termination.condition=termination.condition, n.cycle=n.cycle)
   }
-  
+
   #### Return the results
   return(results)
 }
