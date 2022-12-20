@@ -21,9 +21,13 @@ The INLA package must be installed.
 See: https://www.r-inla.org/download-install
 
 
+### Installing from local files
+
+Download this GitHub repository and install the socialFrontiers_0.0.0.9000.tar.gz file. 
+
 ### Installing from github:
 
-Below option also builds vignettes.
+This is a bit more involved than the local install option. Run this code (need `devtools` package).
 
 ```r
 require(devtools)
@@ -45,11 +49,11 @@ Where the `__VERSION__` is to be replaced with the package version (e.g. `mengle
 ## Legacy / installing a working version of this package
 
 This package isn't on CRAN because I cannot maintain it. If you encounter any errors, it is likely due to changes in the package dependencies (probably INLA). In which case, it is easier to install an older version of R and it's packages using the checkpoint package. Here's a guide using:
-- R v4.0.0
+- R v4.0.2
 - R packages in the CRAN repo on 1 Jan 2020 (using checkpoint)
-- INLA version 18.12.12
+- INLA version 18.07.12 (dated 18.12.12)
 
-1. Download version R v4.0.0 and install 
+1. Download version R v4.0.2 and install 
 2. Install the checkpoint package. If your version of R is too old then I recommend downloading and installing an older version of checkpoint from [here](https://cran.r-project.org/src/contrib/Archive/checkpoint/)
 3. Before running anything set up checkpoint. This will ensure that you are using archived R packages:
 
@@ -60,12 +64,7 @@ checkpoint('2020-01-01')
 
 4. Install an older version of INLA. I would check the INLA website for instructions but I usually encounter error. Best to download and install an older verstion from their archives [here](https://inla.r-inla-download.org/R/stable/src/contrib/). I recommend version 18.12.12.
 
-5. Install this package
-
-```r
-require(devtools)
-install_github("menglezhang/socialfrontiers", build_opts = c("--no-resave-data", "--no-manual"), build_vignettes = TRUE)
-```
+5. Install this package either locally or via GitHub
 
 6. Then run your analysis and save the outputs for use elsewhere (e.g. in newer versions of R, python etc). 
 
