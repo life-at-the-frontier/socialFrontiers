@@ -4,7 +4,15 @@
 \alias{frontier_detect}
 \title{Method for detecting frontiers}
 \usage{
-frontier_detect(y, data, n.trials, W.nb = NULL, ...)
+frontier_detect(
+  y,
+  data,
+  n.trials,
+  W.nb = NULL,
+  fix.rho = TRUE,
+  rho = 0.99,
+  ...
+)
 }
 \arguments{
 \item{y}{A string indicating column in data denoting the value to find
