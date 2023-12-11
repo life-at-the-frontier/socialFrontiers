@@ -20,11 +20,6 @@ This package relies on dependencies found in CRAN except for the INLA package.
 The INLA package must be installed.
 See: https://www.r-inla.org/download-install
 
-
-### Installing from local files
-
-Download this GitHub repository and install the socialFrontiers_0.0.0.9000.tar.gz file. 
-
 ### Installing from github:
 
 This is a bit more involved than the local install option. Run this code (need `devtools` package).
