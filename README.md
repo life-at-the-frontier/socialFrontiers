@@ -3,8 +3,9 @@
 socialFrontiers is an R package for detecting social frontiers using spatial data. 
 A social frontier denotes places where there is a sharp difference in social/ethnic 
 characteristics between neighbouring communities. The package use an detection
-model detailed in Dean et al 2016 [1] and originally developed in Lee and Mitchell 2013 [2]. This package contains functions for 
-implementing the detection model and extracting its results.
+model detailed in Dean et al 2016 [1] and originally developed in Lee and Mitchell 2013 [2]. 
+The R implementation presented in the code here represents a minor amendment to the R code accompanying the Lee and Mitchell [2].
+This package contains functions for implementing the detection model and extracting its results.
 
 
 [1] Dean, Nema, Guanpeng Dong, Aneta Piekut, and Gwilym Pryce. 2016. ‘Frontiers in Residential Segregation : Understanding Neighbourhood Boundaries and Their Impacts’ 00 (00): 1–22. https://doi.org/10.1111/tesg.12316.
